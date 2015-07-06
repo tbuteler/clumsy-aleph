@@ -1,0 +1,26 @@
+{
+    "name": "clumsy/aleph",
+    "description": "",
+    "authors": [
+        {
+            "name": "Tomas Buteler",
+            "email": "tbuteler@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "4.1.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Clumsy\\Aleph": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.0-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
