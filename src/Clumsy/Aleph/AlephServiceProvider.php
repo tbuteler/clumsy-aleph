@@ -32,7 +32,7 @@ class AlephServiceProvider extends ServiceProvider {
 		        'input'  => $request->all(),
 		    ), true);
 
-		    Log::error($initialInfo.' |o| '.$exception);
+		    Log::error($initialInfo.' |[o]| '.$exception);
 		});
 	}
 
