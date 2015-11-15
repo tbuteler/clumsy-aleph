@@ -8,16 +8,17 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0"
+        "lib-curl": "*",
+        "laravel/framework": "5.1.*"
     },
     "autoload": {
-        "psr-0": {
+        "psr-4": {
             "Clumsy\\Aleph": "src/"
         }
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1.0-dev"
+            "dev-master": "0.2.0-dev"
         }
     },
     "minimum-stability": "dev",
