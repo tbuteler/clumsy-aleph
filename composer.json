@@ -1,6 +1,7 @@
 {
     "name": "clumsy/aleph",
     "description": "",
+    "license": "proprietary",
     "authors": [
         {
             "name": "Tomas Buteler",
@@ -13,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Clumsy\\Aleph": "src/"
+            "Clumsy\\Aleph\\": "src/"
         }
     },
     "extra": {
