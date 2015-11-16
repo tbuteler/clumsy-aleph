@@ -68,17 +68,16 @@ class AlephServiceProvider extends ServiceProvider
         });
     }
 
-    public function postRecord(array $data)
+    /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->endpoint);
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, true));
-        curl_exec($ch);
-        curl_close($ch);
+        $this->publishes([
+            __DIR__.'/config.php' => config_path('clumsy/aleph.php'),
+        ], 'config');
     }
 
     /**
@@ -89,5 +88,18 @@ class AlephServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    protected function postRecord(array $data)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->endpoint);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, true));
+        curl_exec($ch);
+        curl_close($ch);
     }
 }
