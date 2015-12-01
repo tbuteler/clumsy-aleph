@@ -4,9 +4,6 @@ namespace Clumsy\Aleph;
 
 use Exception;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
 
 class AlephServiceProvider extends ServiceProvider
 {
