@@ -138,12 +138,12 @@ class AlephServiceProvider extends ServiceProvider
 
     protected function getInputData()
     {
-        return $this->app['request']->all();
+        return $this->sensitive($this->app['request']->all());
     }
 
     protected function getUserData()
     {
-        return $this->app['request']->user() ? $this->app['request']->user()->getAttributes() : [];
+        return $this->sensitive($this->app['request']->user() ? $this->app['request']->user()->getAttributes() : []);
     }
 
     protected function getSessionData()
