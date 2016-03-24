@@ -3,6 +3,8 @@
 namespace Clumsy\Aleph;
 
 use Exception;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\ServiceProvider;
 
 class AlephServiceProvider extends ServiceProvider
@@ -16,6 +18,14 @@ class AlephServiceProvider extends ServiceProvider
 
     protected $endpoint;
 
+    protected $enforceHttps;
+
+    protected $logEndpointResponse;
+
+    protected $sensitiveKeywords;
+
+    protected $whitelist;
+
     /**
      * Register the service provider.
      *
@@ -25,7 +35,11 @@ class AlephServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/config.php', 'clumsy.aleph');
 
-        $this->endpoint = config('clumsy.aleph.endpoint');
+        $this->endpoint = $this->app['config']->get('clumsy.aleph.endpoint');
+        $this->enforceHttps = $this->app['config']->get('clumsy.aleph.enforce-endpoint-https');
+        $this->logEndpointResponse = $this->app['config']->get('clumsy.aleph.log-endpoint-response');
+        $this->sensitiveKeywords = $this->app['config']->get('clumsy.aleph.sensitive-keywords');
+        $this->whitelist = $this->app['config']->get('clumsy.aleph.attribute-whitelist');
 
         $this->app['log']->getMonolog()->pushProcessor(function ($record) {
 
@@ -38,20 +52,20 @@ class AlephServiceProvider extends ServiceProvider
                     'method'  => $request->method(),
                     'isAjax'  => $request->ajax(),
                     'agent'   => $request->header('USER_AGENT'),
-                    'input'   => $request->all(),
+                    'input'   => $this->getInputData(),
                     'cookies' => $request->cookie(),
-                    'user'    => $request->user(),
+                    'user'    => $this->getUserData(),
                     'session' => [
                         'started'    => $request->session()->isStarted(),
                         'id'         => $request->session()->getId(),
-                        'attributes' => $request->session()->all(),
+                        'attributes' => $this->getSessionData(),
                         'handler'    => class_basename($request->session()->getHandler()),
                     ],
                 ];
 
                 if (!is_null($this->endpoint)) {
-                    $record['request'] = $requestInfo;
-                    $this->postRecord($record);
+                    $record['aleph'] = $requestInfo;
+                    $requestInfo = $this->postRecord($record);
                 }
 
                 $record['message'] = json_encode($requestInfo, true).' |[o]| '.$record['message'];
@@ -87,16 +101,74 @@ class AlephServiceProvider extends ServiceProvider
         return [];
     }
 
+    protected function sensitive(array $data)
+    {
+        $arrays = array_filter($data, function ($value) {
+            return is_array($value);
+        });
+
+        $data = array_filter($data, function ($value) {
+            return !is_array($value);
+        });
+
+        foreach ($this->sensitiveKeywords as $keyword) {
+            $replace = preg_grep("/{$keyword}/i", array_keys($data));
+            foreach ($replace as $key) {
+                if (!in_array($key, $this->whitelist)) {
+                    array_set($data, $key, $this->redact(array_get($data, $key)));
+                }
+            }
+        }
+
+        $data = array_merge($data, array_map(function ($value) {
+            // Process sensitive data recursively
+            return $this->sensitive($value);
+        }, $arrays));
+
+        return $data;
+    }
+
+    protected function redact($content)
+    {
+        $type = gettype($content);
+        $info = $type === 'object' ? get_class($content) : strlen($content);
+
+        return "[redacted] {$type}($info)";
+    }
+
+    protected function getInputData()
+    {
+        return $this->app['request']->all();
+    }
+
+    protected function getUserData()
+    {
+        return $this->app['request']->user() ? $this->app['request']->user()->getAttributes() : [];
+    }
+
+    protected function getSessionData()
+    {
+        return $this->sensitive($this->app['request']->session()->all());
+    }
+
     protected function postRecord(array $data)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->endpoint);
-        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, true));
-        curl_exec($ch);
-        curl_close($ch);
+        $client = new Client();
+
+        $request = new Request('POST', $this->endpoint);
+
+        if ($request->getUri()->getScheme() !== 'https' && $this->enforceHttps) {
+            return ['aleph-error' => 'Sending data over insecure connections requires explicit override.'];
+        }
+
+        $response = $client->send($request, [
+            'json' => $data,
+        ]);
+
+        if ($response->getStatusCode() === 200 && $this->logEndpointResponse) {
+            $data = json_decode((string)$response->getBody(), true);
+        }
+
+        return $data;
     }
 }

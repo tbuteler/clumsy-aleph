@@ -9,8 +9,8 @@
         }
     ],
     "require": {
-        "lib-curl": "*",
-        "laravel/framework": ">=5.1"
+        "laravel/framework": ">=5.1",
+        "guzzlehttp/guzzle": "~6.0"
     },
     "autoload": {
         "psr-4": {
