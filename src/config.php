@@ -69,7 +69,9 @@ return [
         'password',
         'cc',
         'credit',
+        'cardnumber',
         'cvv',
+        'cvc',
         'csc',
     ],
 
