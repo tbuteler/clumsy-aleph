@@ -63,7 +63,7 @@ class AlephServiceProvider extends ServiceProvider
                     ],
                 ];
 
-                if (!is_null($this->endpoint)) {
+                if ($this->endpoint) {
                     $record['aleph'] = $requestInfo;
                     $requestInfo = $this->postRecord($record);
                 }
