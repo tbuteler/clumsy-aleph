@@ -5,7 +5,7 @@
     "authors": [
         {
             "name": "Tomas Buteler",
-            "email": "tbuteler@gmail.com"
+            "email": "tbuteler@me.com"
         }
     ],
     "require": {
@@ -19,7 +19,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.2.0-dev"
+            "dev-master": "0.2.1-dev"
         }
     },
     "minimum-stability": "dev",

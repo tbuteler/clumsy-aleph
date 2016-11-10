@@ -35,6 +35,10 @@ class AlephServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/config.php', 'clumsy.aleph');
 
+        if (!$this->app['config']->get('clumsy.aleph.enabled')) {
+            return;
+        }
+
         $this->endpoint = $this->app['config']->get('clumsy.aleph.endpoint');
         $this->enforceHttps = $this->app['config']->get('clumsy.aleph.enforce-endpoint-https');
         $this->logEndpointResponse = $this->app['config']->get('clumsy.aleph.log-endpoint-response');
